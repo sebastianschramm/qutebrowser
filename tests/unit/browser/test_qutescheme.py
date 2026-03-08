@@ -308,6 +308,84 @@ class TestPDFJSHandler:
             qutescheme.data_for_url(url)
 
 
+class TestAiRelatedHistoryHandler:
+
+    """Test the qute://ai-related-history endpoint."""
+
+    def test_no_results_yet(self, monkeypatch):
+        """When ai_related_result is None, show fallback message."""
+        from qutebrowser.browser import ai_history
+        monkeypatch.setattr(ai_history, 'ai_related_result', None)
+
+        _mimetype, data = qutescheme.qute_ai_related_history(
+            QUrl('qute://ai-related-history/'))
+
+        assert 'No results yet.' in data
+        assert 'Run :ai-related-history on a page first.' in data
+
+    def test_with_results(self, monkeypatch):
+        """When ai_related_result has data, render the results page."""
+        from qutebrowser.browser import ai_history
+        monkeypatch.setattr(ai_history, 'ai_related_result', {
+            'current_title': 'My Page',
+            'current_url': 'https://example.com',
+            'results': [
+                {
+                    'title': 'Related Page',
+                    'url': 'https://related.com',
+                    'domain': 'related.com',
+                    'score': 0.85,
+                },
+            ],
+        })
+
+        _mimetype, data = qutescheme.qute_ai_related_history(
+            QUrl('qute://ai-related-history/'))
+
+        assert 'Related History' in data
+        assert 'My Page' in data
+        assert 'https://example.com' in data
+        assert 'Related Page' in data
+        assert 'https://related.com' in data
+
+    def test_with_empty_results_list(self, monkeypatch):
+        """When ai_related_result has data but no matching results."""
+        from qutebrowser.browser import ai_history
+        monkeypatch.setattr(ai_history, 'ai_related_result', {
+            'current_title': 'Lonely Page',
+            'current_url': 'https://lonely.com',
+            'results': [],
+        })
+
+        _mimetype, data = qutescheme.qute_ai_related_history(
+            QUrl('qute://ai-related-history/'))
+
+        assert 'Lonely Page' in data
+        assert 'https://lonely.com' in data
+
+    def test_html_escaping_in_results(self, monkeypatch):
+        """Ensure titles with special characters are rendered safely."""
+        from qutebrowser.browser import ai_history
+        monkeypatch.setattr(ai_history, 'ai_related_result', {
+            'current_title': 'Page <script>alert(1)</script>',
+            'current_url': 'https://example.com',
+            'results': [
+                {
+                    'title': 'Result <b>bold</b>',
+                    'url': 'https://xss.com/?q=<img>',
+                    'domain': 'xss.com',
+                    'score': 0.9,
+                },
+            ],
+        })
+
+        _mimetype, data = qutescheme.qute_ai_related_history(
+            QUrl('qute://ai-related-history/'))
+
+        assert '<script>' not in data
+        assert '&lt;script&gt;' in data
+
+
 class TestQuteConfigdiff:
 
     """Test the qute://configdiff handler."""

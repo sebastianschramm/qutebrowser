@@ -605,3 +605,26 @@ def qute_start(_url: QUrl) -> _HandlerRet:
                         search_url=searchurl,
                         quickmarks=quickmarks)
     return 'text/html', page
+
+
+@add_handler('ai-related-history')
+def qute_ai_related_history(_url: QUrl) -> _HandlerRet:
+    """Handler for qute://ai-related-history/. Shows related history results."""
+    import types
+    from qutebrowser.browser import ai_history  # avoid circular import
+    result = ai_history.ai_related_result
+    if result is None:
+        src = jinja.render(
+            'pre.html',
+            title='Related History',
+            content='No results yet.\nRun :ai-related-history on a page first.',
+        )
+    else:
+        src = jinja.render(
+            'ai_related_history.html',
+            title='Related History',
+            current_title=result['current_title'],
+            current_url=result['current_url'],
+            results=[types.SimpleNamespace(**r) for r in result['results']],
+        )
+    return 'text/html', src

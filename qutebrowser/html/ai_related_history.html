@@ -1,0 +1,130 @@
+{% extends "styled.html" %}
+
+{% block style %}
+{{ super() }}
+
+.current-page {
+    background: #f0f4ff;
+    border-left: 4px solid #2562dc;
+    padding: 10px 14px;
+    margin-bottom: 24px;
+    border-radius: 0 4px 4px 0;
+}
+
+.current-page .label {
+    font-size: 0.8rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.current-page .title {
+    font-weight: bold;
+    color: #222;
+}
+
+.current-page .url {
+    font-size: 0.85rem;
+    color: #555;
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.results-table th {
+    text-align: left;
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 6px 8px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.results-table td {
+    padding: 10px 8px;
+    vertical-align: top;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.results-table tr:last-child td {
+    border-bottom: none;
+}
+
+.result-title a {
+    font-weight: 500;
+    color: #2562dc;
+    font-size: 1rem;
+}
+
+.result-domain {
+    font-size: 0.82rem;
+    color: #888;
+    margin-top: 2px;
+}
+
+.score {
+    font-size: 0.85rem;
+    color: #555;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.score-bar {
+    display: inline-block;
+    height: 8px;
+    border-radius: 4px;
+    background: #2562dc;
+    vertical-align: middle;
+    margin-right: 6px;
+    opacity: 0.6;
+}
+
+.empty {
+    color: #888;
+    font-style: italic;
+    margin-top: 20px;
+}
+{% endblock %}
+
+{% block content %}
+<h1>Related History</h1>
+
+<div class="current-page">
+    <div class="label">Current page</div>
+    <div class="title">{{ current_title or "(no title)" }}</div>
+    <div class="url">{{ current_url }}</div>
+</div>
+
+{% if results %}
+<table class="results-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Page</th>
+            <th>Similarity</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for r in results %}
+        <tr>
+            <td style="color:#aaa;width:2em">{{ loop.index }}</td>
+            <td class="result-title">
+                <a href="{{ r.url }}">{{ r.title }}</a>
+                <div class="result-domain">{{ r.domain }}</div>
+            </td>
+            <td class="score">
+                <span class="score-bar" style="width:{{ (r.score * 80)|int }}px"></span>
+                {{ "%.2f"|format(r.score) }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">No similar pages found in your recent history.</p>
+{% endif %}
+{% endblock %}
